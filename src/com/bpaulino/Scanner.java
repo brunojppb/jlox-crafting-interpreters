@@ -1,7 +1,9 @@
 package com.bpaulino;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Scanner {
 
@@ -23,12 +25,34 @@ public class Scanner {
   // This allows to keep track of the token location.
   private int line = 1;
 
+  private static final Map<String, TokenType> keywords;
+
+  static {
+    keywords = new HashMap<>();
+    keywords.put("and", TokenType.AND);
+    keywords.put("class", TokenType.CLASS);
+    keywords.put("else", TokenType.ELSE);
+    keywords.put("false", TokenType.FALSE);
+    keywords.put("for", TokenType.FOR);
+    keywords.put("fun", TokenType.FUN);
+    keywords.put("if", TokenType.IF);
+    keywords.put("nil", TokenType.NIL);
+    keywords.put("or", TokenType.OR);
+    keywords.put("print", TokenType.PRINT);
+    keywords.put("return", TokenType.RETURN);
+    keywords.put("super", TokenType.SUPER);
+    keywords.put("this", TokenType.THIS);
+    keywords.put("true", TokenType.TRUE);
+    keywords.put("var", TokenType.VAR);
+    keywords.put("while", TokenType.WHILE);
+  }
+
   Scanner(String source) {
     this.source = source;
   }
 
   List<Token> scanTokens() {
-    while(!isAtEnd()) {
+    while (!isAtEnd()) {
       start = current;
       scanToken();
     }
@@ -80,8 +104,8 @@ public class Scanner {
   }
 
   private void string() {
-    while(peek() != '"' && !isAtEnd()) {
-      if(peek() == '\n') line++;
+    while (peek() != '"' && !isAtEnd()) {
+      if (peek() == '\n') line++;
       advance();
     }
 
@@ -104,7 +128,7 @@ public class Scanner {
 
   // consume the current number (Always double precision numbers)
   private void number() {
-    while(isDigit(peek())) {
+    while (isDigit(peek())) {
       advance();
     }
 
@@ -113,12 +137,38 @@ public class Scanner {
       // consume the '.' and move on
       advance();
 
-      while(isDigit(peek())) {
+      while (isDigit(peek())) {
         advance();
       }
     }
 
     addToken(TokenType.NUMBER, Double.parseDouble(source.substring(start, current)));
+  }
+
+  private boolean isAlpha(char c) {
+    return (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z') ||
+        (c == '_');
+  }
+
+  private boolean isAlphaNumeric(char c) {
+    return isAlpha(c) || isDigit(c);
+  }
+
+  private void identifier() {
+    while (isAlphaNumeric(peek())) {
+      advance();
+    }
+
+    String text = source.substring(start, current);
+    TokenType type = keywords.get(text);
+    // We didn't match any of our language keywords,
+    // so it must be a user-defined identifier
+    if (type == null) {
+      type = TokenType.IDENTIFIER;
+    }
+
+    addToken(type);
   }
 
   private void scanToken() {
@@ -140,7 +190,7 @@ public class Scanner {
       // From here we have cases where a lexeme can be composed by one or more characters
       // '!' and '!=' are different operators, but both start with '!'.
       // So we have to look ahead to check what comes next.
-      case '!' -> addToken(match('=') ? TokenType.EQUAL : TokenType.BANG);
+      case '!' -> addToken(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
       case '=' -> addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
       case '<' -> addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
       case '>' -> addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
@@ -149,14 +199,15 @@ public class Scanner {
       // start with a '/' too, so we need to account for that.
       case '/' -> {
         if (match('/')) {
-          while(peek() != '\n' && !isAtEnd()) advance();
+          while (peek() != '\n' && !isAtEnd()) advance();
         } else {
           addToken(TokenType.SLASH);
         }
       }
 
       // Skip whitespace
-      case ' ', '\r', '\t' -> {}
+      case ' ', '\r', '\t' -> {
+      }
 
       // Advance to the next line
       case '\n' -> line++;
@@ -166,6 +217,8 @@ public class Scanner {
       default -> {
         if (isDigit(c)) {
           number();
+        } else if (isAlpha(c)) {
+          identifier();
         } else {
           Lox.error(line, "Unexpected Character");
         }
