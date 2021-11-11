@@ -72,6 +72,13 @@ public class Scanner {
     return source.charAt(current);
   }
 
+  // take a peek at the second character after the current
+  // (if the source string allows it)
+  private char peekNext() {
+    if (current + 1 >= source.length()) return '\0';
+    return source.charAt(current + 1);
+  }
+
   private void string() {
     while(peek() != '"' && !isAtEnd()) {
       if(peek() == '\n') line++;
@@ -89,6 +96,29 @@ public class Scanner {
     // Trim the surrounding quotes and get the string content
     String value = source.substring(start + 1, current - 1);
     addToken(TokenType.STRING, value);
+  }
+
+  private boolean isDigit(char c) {
+    return c >= '0' && c <= '9';
+  }
+
+  // consume the current number (Always double precision numbers)
+  private void number() {
+    while(isDigit(peek())) {
+      advance();
+    }
+
+    // Check for decimal places. a '.' should be followed by an integer
+    if (peek() == '.' && isDigit(peekNext())) {
+      // consume the '.' and move on
+      advance();
+
+      while(isDigit(peek())) {
+        advance();
+      }
+    }
+
+    addToken(TokenType.NUMBER, Double.parseDouble(source.substring(start, current)));
   }
 
   private void scanToken() {
@@ -133,7 +163,13 @@ public class Scanner {
 
       case '"' -> string();
 
-      default -> Lox.error(line, "Unexpected Character");
+      default -> {
+        if (isDigit(c)) {
+          number();
+        } else {
+          Lox.error(line, "Unexpected Character");
+        }
+      }
 
     }
   }
