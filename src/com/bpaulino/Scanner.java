@@ -72,6 +72,25 @@ public class Scanner {
     return source.charAt(current);
   }
 
+  private void string() {
+    while(peek() != '"' && !isAtEnd()) {
+      if(peek() == '\n') line++;
+      advance();
+    }
+
+    if (isAtEnd()) {
+      Lox.error(line, "Unterminated string.");
+      return;
+    }
+
+    // We reached the closing quotes '"'
+    advance();
+
+    // Trim the surrounding quotes and get the string content
+    String value = source.substring(start + 1, current - 1);
+    addToken(TokenType.STRING, value);
+  }
+
   private void scanToken() {
     char c = advance();
     // Let's start with the lexemes that are one character long,
@@ -111,6 +130,8 @@ public class Scanner {
 
       // Advance to the next line
       case '\n' -> line++;
+
+      case '"' -> string();
 
       default -> Lox.error(line, "Unexpected Character");
 
