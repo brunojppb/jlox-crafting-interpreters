@@ -1,4 +1,4 @@
-package com.bpaulino;
+package com.bpaulino.scanner;
 
 enum TokenType {
   // Single character tokens

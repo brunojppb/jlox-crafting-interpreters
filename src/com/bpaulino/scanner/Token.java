@@ -1,4 +1,4 @@
-package com.bpaulino;
+package com.bpaulino.scanner;
 
 public class Token {
   final TokenType type;

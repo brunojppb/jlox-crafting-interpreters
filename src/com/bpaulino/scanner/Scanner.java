@@ -1,5 +1,6 @@
-package com.bpaulino;
+package com.bpaulino.scanner;
 
+import com.bpaulino.Lox;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,11 +48,11 @@ public class Scanner {
     keywords.put("while", TokenType.WHILE);
   }
 
-  Scanner(String source) {
+  public Scanner(String source) {
     this.source = source;
   }
 
-  List<Token> scanTokens() {
+  public List<Token> scanTokens() {
     while (!isAtEnd()) {
       start = current;
       scanToken();

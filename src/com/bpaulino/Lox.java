@@ -1,5 +1,8 @@
 package com.bpaulino;
 
+import com.bpaulino.scanner.Scanner;
+import com.bpaulino.scanner.Token;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -53,7 +56,7 @@ public class Lox {
     }
   }
 
-  static void error(int line, String message) {
+  public static void error(int line, String message) {
     report(line, "", message);
   }
 
