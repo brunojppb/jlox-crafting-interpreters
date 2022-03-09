@@ -5,7 +5,12 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
+/**
+ * Generates the boilerplate token type classes just
+ * to work as plain case classes (scala) to pass data around.
+ * */
 public class GenerateAst {
 
   public static void main(String[] args) throws IOException {
@@ -34,14 +39,34 @@ public class GenerateAst {
     writer.println();
     writer.println("abstract class " + basename + " {");
 
+    defineVisitor(writer, basename, types);
+
     for (String type: types) {
       String className = type.split(":")[0].trim();
       String fields = type.split(":")[1].trim();
       defineType(writer, basename, className, fields);
     }
 
+    // Base accept method for the Visitor pattern interface
+    writer.println();
+    writer.println("  abstract <R> R accept(Visitor<R> visitor);");
+
     writer.println("}");
     writer.close();
+  }
+
+  private static void defineVisitor(PrintWriter writer, String basename, List<String> types) {
+    writer.println("  interface Visitor<R> {");
+
+    for (String type: types) {
+      String typeName = type.split(":")[0].trim();
+      writer.println(
+        "    R visit" + typeName + basename + "(" + typeName + " " + basename.toLowerCase() + ");"
+      );
+    }
+
+    writer.println("  }");
+    writer.println();
   }
 
   private static void defineType(PrintWriter writer, String basename, String className, String fieldList) {
@@ -59,6 +84,12 @@ public class GenerateAst {
     // wrapping up the constructor
     writer.println("    }");
     writer.println();
+
+    // Visitor interface implementation
+    writer.println("    @Override");
+    writer.println("    <R> R accept(Visitor<R> visitor) {");
+    writer.println("      return visitor.visit" + className + basename + "(this);");
+    writer.println("    }");
 
     // class fields
     for(String field: fields) {
