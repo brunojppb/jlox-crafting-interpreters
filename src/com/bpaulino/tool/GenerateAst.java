@@ -37,7 +37,7 @@ public class GenerateAst {
     writer.println();
     writer.println("import java.util.List;");
     writer.println();
-    writer.println("abstract class " + basename + " {");
+    writer.println("abstract public class " + basename + " {");
 
     defineVisitor(writer, basename, types);
 
@@ -49,14 +49,14 @@ public class GenerateAst {
 
     // Base accept method for the Visitor pattern interface
     writer.println();
-    writer.println("  abstract <R> R accept(Visitor<R> visitor);");
+    writer.println("  public abstract <R> R accept(Visitor<R> visitor);");
 
     writer.println("}");
     writer.close();
   }
 
   private static void defineVisitor(PrintWriter writer, String basename, List<String> types) {
-    writer.println("  interface Visitor<R> {");
+    writer.println("  public interface Visitor<R> {");
 
     for (String type: types) {
       String typeName = type.split(":")[0].trim();
@@ -71,9 +71,9 @@ public class GenerateAst {
 
   private static void defineType(PrintWriter writer, String basename, String className, String fieldList) {
     // Class definition
-    writer.println("  static class " + className + " extends " + basename + " {");
+    writer.println("  public static class " + className + " extends " + basename + " {");
     // Class constructor
-    writer.println("    " + className + "(" + fieldList + ") {");
+    writer.println("    public " + className + "(" + fieldList + ") {");
 
     // Store class field values within the constructor
     String[] fields = fieldList.split(", ");
@@ -87,13 +87,13 @@ public class GenerateAst {
 
     // Visitor interface implementation
     writer.println("    @Override");
-    writer.println("    <R> R accept(Visitor<R> visitor) {");
+    writer.println("    public <R> R accept(Visitor<R> visitor) {");
     writer.println("      return visitor.visit" + className + basename + "(this);");
     writer.println("    }");
 
     // class fields
     for(String field: fields) {
-      writer.println("    final " + field + ";");
+      writer.println("    public final " + field + ";");
     }
 
     // Wrapping up the class
