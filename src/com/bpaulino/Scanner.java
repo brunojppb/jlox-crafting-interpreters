@@ -43,6 +43,39 @@ public class Scanner {
             case '+': addToken(TokenType.PLUS); break;
             case ';': addToken(TokenType.SEMICOLON); break;
             case '*': addToken(TokenType.STAR); break;
+            case '!':
+                addToken(match('=') ? TokenType.BANG_EQUAL: TokenType.BANG);
+                break;
+            case '=':
+                addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
+                break;
+            case '<':
+                addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
+                break;
+            case '>':
+                addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+                break;
+            case '/':
+                // Comments start with '//' and go until the end of the line
+                if (match('/')) {
+                    // check the follow-up characters until the end of the line.
+                    // keep advancing until we reach a line break.
+                    while(peek() != '\n' && !isAtEnd()) {
+                        advance();
+                    }
+                } else {
+                    addToken(TokenType.SLASH);
+                }
+                break;
+            // Ignore all whitespace variations
+            case ' ':
+            case '\r':
+            case '\t':
+                break;
+                
+            case '\n':
+                line++;
+                break;
             default:
                 // Report the invalid character, but keep scanning.
                 // Let's report more errors to the users if we find them.
@@ -53,6 +86,22 @@ public class Scanner {
 
     private char advance() {
         return source.charAt(current++);
+    }
+
+    // Take a look at the next character to be consumed.
+    // But do not consume. (lookahead)
+    private char peek() {
+        if (isAtEnd()) return '\0';
+        return source.charAt(current);
+    }
+
+    // Check if the next character matches the given char.
+    // If that is the case, consume it.
+    private boolean match(char expected) {
+        if (isAtEnd()) return false;
+        if (source.charAt(current) != expected) return false;
+        current++;
+        return true;
     }
 
     private void addToken(TokenType token) {
